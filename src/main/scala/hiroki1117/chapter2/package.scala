@@ -12,10 +12,12 @@ package object chapter2{
     loop(n, 0, 1)
   }
 
-  def isSorted[A](as: Array[A], ordered: (A,A) => Boolean): Boolean = as match {
-    case Array(a, b, xs*) => if(ordered(a,b)) isSorted(xs, ordered) else false
-    case Array(a, b) => ordered(a,b)
-    case _ => true
+  def isSorted[A](as: Array[A], ordered: (A,A) => Boolean): Boolean = {
+    var result = true
+    for(x <- 0 until as.size-1) {
+      result = ordered(as(x), as(x+1))
+    }
+    result
   }
 
   def curry[A,B,C](f: (A,B) => C): A=>(B=>C) = a => b => f(a,b)
