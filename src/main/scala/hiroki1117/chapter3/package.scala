@@ -28,14 +28,14 @@ package object chapter3 {
     }
 
     def init: List[A] = this match {
-      case Cons(head, tail) => Cons(head, tail.init)
       case Cons(head, Nil) => List(head)
+      case Cons(head, tail) => Cons(head, tail.init)
       case Nil => Nil
     }
 
   }
   case object Nil extends List[Nothing]
-  case class Cons[+A](head:A, tail:List[A]) extends List[A]
+  case class Cons[+A](head:A, tailList:List[A]) extends List[A]
 
   object List{
     def apply[A](as: A*): List[A] = {
