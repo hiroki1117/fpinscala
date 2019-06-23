@@ -28,9 +28,9 @@ package object chapter3 {
     }
 
     def init: List[A] = this match {
-      case Cons(head, Nil) => List(head)
+      case Cons(head, Nil) => Nil
       case Cons(head, tail) => Cons(head, tail.init)
-      case Nil => Nil
+      case Nil => throw new Exception
     }
 
   }
