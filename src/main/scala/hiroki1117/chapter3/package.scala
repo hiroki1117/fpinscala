@@ -2,6 +2,12 @@ package hiroki1117
 
 package object chapter3 {
   sealed trait List[+A]{
+
+    def headOption: Option[A] = this match {
+      case Cons(h, _) => Some(h)
+      case Nil => None
+    }
+
     def tail: List[A] = this match {
       case Cons(_, tail) => tail
       case _ => throw new Exception
