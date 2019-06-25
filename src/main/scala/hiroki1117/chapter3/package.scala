@@ -53,6 +53,8 @@ package object chapter3 {
       loop(this, z)
     }
 
+    def foldRightByFoldLeft[B](z: B)(f: (A,B)=>B): B = this.reverse.foldLeft(z)((b,a)=>f(a,b))
+
     def length: Int = foldRight(0)((_,acc) => 1 + acc)
 
     def sum[B >: A :Numeric]: B = foldLeft(implicitly[Numeric[B]].zero)(implicitly[Numeric[B]].plus(_, _))
@@ -66,6 +68,33 @@ package object chapter3 {
     def append[B >: A](other: List[B]): List[B] = foldRight(other)((ele, acc)=> Cons(ele, acc))
 
     def flat[B](implicit ev: A <:< List[B]): List[B] = foldRight(Nil: List[B])((ele, acc) => ele.append(acc))
+
+    def addOne(implicit ev: A <:< Int): List[Int] = this match {
+      case Cons(h, t) =>  Cons(h + 1, t.addOne)
+      case Nil => Nil
+    }
+
+    def doubleList2StringList(implicit ev: A <:< Double): List[String] = this match {
+      case Cons(h,t) => Cons(h.toString, t.doubleList2StringList)
+      case Nil => Nil
+    }
+
+    def map[B](f: A=>B): List[B] = this match {
+      case Cons(h,t) => Cons(f(h), t.map(f))
+      case Nil => Nil
+    }
+
+    def filter(f: A=>Boolean): List[A] = this match {
+      case Cons(h,t) => if(f(h)) t.filter(f) else Cons(h, t.filter(f))
+      case Nil => Nil
+    }
+
+    def removeOdd(implicit ev: A <:< Int): List[A] = this.filter(_%2==1)
+
+    def flatMap[B](f:A=>List[B]): List[B] = this match {
+      case Cons(h,t) => f(h).append(t.flatMap((f)))
+      case Nil => Nil
+    }
   }
   case object Nil extends List[Nothing]
   case class Cons[+A](head:A, tailList:List[A]) extends List[A]
@@ -125,5 +154,56 @@ package object chapter3 {
     def append[A](l1: List[A], l2:List[A]): List[A] = foldRight(l1, l2)((ele, acc)=> Cons(ele, acc))
 
     def flat[A](list: List[List[A]]): List[A] = foldRight(list, Nil:List[A])((ele, acc) => append(ele, acc))
+
+    def addOne(list: List[Int]): List[Int] = list match {
+      case Cons(h, t) => Cons(h + 1, addOne(t))
+      case Nil => Nil
+    }
+
+    def doubleToStringList(list: List[Double]): List[String] = list match {
+      case Cons(h,t) => Cons(h.toString, doubleToStringList(t))
+      case Nil => Nil
+    }
+
+    def map[A,B](as: List[A])(f:A=>B):List[B] = as match {
+      case Cons(h,t) => Cons(f(h), map(t)(f))
+      case Nil => Nil
+    }
+
+    def filter[A](as: List[A])(f: A=>Boolean): List[A] = as match {
+      case Cons(h,t) => if(f(h)) filter(t)(f) else Cons(h, filter(t)(f))
+      case Nil => Nil
+    }
+
+    def removeOdd(list: List[Int]): List[Int] = filter(list)(_%2==1)
+
+    def flatMap[A,B](as:List[A])(f: A=>List[B]): List[B] = flat(map(as)(f))
+
+    def filterByFlatMap[A](as: List[A])(f: A=>Boolean): List[A] = flatMap(as)(x => if(f(x)) Nil else List(x))
+
+    def zip(l1: List[Int], l2: List[Int]): List[Int] = map(zipWith(l1, l2))(tuple => tuple._1 + tuple._2)
+
+    def zipWith[A, B](l1: List[A], l2: List[B]): List[(A,B)] = (l1, l2) match {
+      case (_, Nil) => Nil
+      case (Nil, _) => Nil
+      case (Cons(a,b), Cons(c,d)) => Cons((a,c), zipWith(b, d))
+    }
+
+    def hasSubsequence2[A](sup: List[A], sub: List[A]): Boolean = {
+      def go[B](n: Int, list: List[B] ,acc: List[List[B]]): List[List[B]] = if(n > list.length) acc else
+        append(Cons(take(list, n), acc), go(n+1, list, acc))
+
+      def go2(list: List[A], acc: List[List[A]]): List[List[A]] = list match {
+        case Nil => Nil
+        case Cons(_, t) => append(go(1, list, Nil), go2(t, Nil))
+      }
+      val sublist = go2(sup, Nil)
+      foldLeft(sublist, false)((acc, e)=> acc || (e==sub))
+    }
+
+    def take[A](list:List[A], n:Int): List[A] = if(n<=0) Nil else list match {
+      case Nil => Nil
+      case Cons(h, t) => Cons(h, take(t, n-1))
+    }
   }
 }
