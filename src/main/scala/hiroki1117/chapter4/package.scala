@@ -38,5 +38,34 @@ package object chapter4 {
       val m: Option[Double] = mean(xs)
       m.flatMap(ave => mean(xs.map(e => Math.pow(e-ave, 2))))
     }
+
+    def lift[A,B](f:A=>B): Option[A]=>Option[B] = _ map f
+
+    def map2[A,B,C](a:Option[A], b:Option[B])(f: (A,B)=>C): Option[C] =
+      for {
+        a1 <- a
+        b1 <- b
+      } yield f(a1, b1)
+
+    def map3[A,B,C,D](a:Option[A], b:Option[B], c:Option[C])(f:(A,B,C)=>D):Option[D] =
+      for {
+        a1 <- a
+        b1 <- b
+        c1 <- c
+      } yield f(a1,b1,c1)
+
+    def map4[A,B,C,D,E](a:Option[A], b:Option[B], c:Option[C], d:Option[D])(f:(A,B,C,D)=> E): Option[E] =
+      for{
+        a1 <- a
+        b1 <- b
+        c1 <- c
+        d1 <- d
+      } yield f(a1,b1,c1,d1)
+
+    def sequence[A](optionlist: List[Option[A]]): Option[List[A]] =
+      optionlist.foldRight(Some(Nil): Option[List[A]]){(e, acc) => map2(e, acc)(_ :: _)}
+
+    def traverse[A,B](a: List[A])(f: A=>Option[B]): Option[List[B]] =
+      a.foldRight(Some(Nil): Option[List[B]]){(e, acc) => map2(f(e), acc)(_ :: _)}
   }
 }
