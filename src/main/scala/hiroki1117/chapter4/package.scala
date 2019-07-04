@@ -24,6 +24,8 @@ package object chapter4 {
 
 
   object Option {
+    def pure[A](a: =>A): Option[A] = apply(a)
+
     def apply[A](a: => A): Option[A] = try{
       val b = a
       Some(b)
@@ -40,6 +42,8 @@ package object chapter4 {
     }
 
     def lift[A,B](f:A=>B): Option[A]=>Option[B] = _ map f
+
+    def ap[A,B](a: Option[A])(f: Option[A=>B]): Option[B] = map2(a, f)((aa, ff)=>ff(aa))
 
     def map2[A,B,C](a:Option[A], b:Option[B])(f: (A,B)=>C): Option[C] =
       for {
@@ -82,7 +86,15 @@ package object chapter4 {
       case Right(_) => this
     }
 
-    def map2[EE >: E, B, C](b: Either[EE, B])(f: (A,B)=>C): Either[EE, C] =
+    def ap[EE >: E, B](f: Either[EE, A=>B]): Either[EE, B] =
+      for {
+        a1 <- this
+        f1 <- f
+      } yield f1(a1)
+
+    def map2[EE >: E, B, C](b: Either[EE, B])(f: (A,B)=>C): Either[EE, C] = b.ap(ap(Either.pure(f.curried)))
+
+    def map2normal[EE >: E, B, C](b: Either[EE, B])(f: (A,B)=>C): Either[EE, C] =
       for {
         a1 <- this
         b1 <- b
@@ -92,6 +104,8 @@ package object chapter4 {
   case class Right[+A](value: A) extends Either[Nothing, A]
 
   object Either {
+    def pure[E, A](a: A): Either[E,A] = Right(a)
+
     def Try[A](a: => A): Either[Exception, A] =
       try Right(a)
       catch {case e: Exception => Left(e)}
