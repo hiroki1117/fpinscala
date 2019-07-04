@@ -59,7 +59,7 @@ package object chapter3 {
 
     def sum[B >: A :Numeric]: B = foldLeft(implicitly[Numeric[B]].zero)(implicitly[Numeric[B]].plus(_, _))
 
-    def product[B >: A : Numeric]: B = foldLeft(implicitly[Numeric[B]].zero)(implicitly[Numeric[B]].times(_,_))
+    def product[B >: A : Numeric]: B = foldLeft(implicitly[Numeric[B]].one)(implicitly[Numeric[B]].times(_,_))
 
     def lengthByFoldLeft = foldLeft(0)((acc, _) => 1 + acc)
 
