@@ -73,13 +73,13 @@ package object chapter4 {
     def map[B](f: A=>B): Either[E, B] = this.flatMap(x => Right(f(x)))
 
     def flatMap[EE >: E, B](f: A=>Either[EE,B]): Either[EE,B] = this match {
-      case Left(_) => this
+      case Left(l) => Left(l)
       case Right(r) => f(r)
     }
 
     def orElse[EE >: E, B >: A](b: => Either[EE, B]): Either[EE, B] = this match {
       case Left(_) => b
-      case Right(r) => this
+      case Right(_) => this
     }
 
     def map2[EE >: E, B, C](b: Either[EE, B])(f: (A,B)=>C): Either[EE, C] =
