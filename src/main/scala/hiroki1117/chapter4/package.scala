@@ -28,7 +28,7 @@ package object chapter4 {
       val b = a
       Some(b)
     } catch {
-      case Exception => None
+      case _: Exception => None
     }
 
     def mean(xs: Seq[Double]): Option[Double] =
