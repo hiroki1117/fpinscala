@@ -68,4 +68,44 @@ package object chapter4 {
     def traverse[A,B](a: List[A])(f: A=>Option[B]): Option[List[B]] =
       a.foldRight(Some(Nil): Option[List[B]]){(e, acc) => map2(f(e), acc)(_ :: _)}
   }
+
+  sealed trait Either[+E, +A] {
+    def map[B](f: A=>B): Either[E, B] = this.flatMap(x => Right(f(x)))
+
+    def flatMap[EE >: E, B](f: A=>Either[EE,B]): Either[EE,B] = this match {
+      case Left(_) => this
+      case Right(r) => f(r)
+    }
+
+    def orElse[EE >: E, B >: A](b: => Either[EE, B]): Either[EE, B] = this match {
+      case Left(_) => b
+      case Right(r) => this
+    }
+
+    def map2[EE >: E, B, C](b: Either[EE, B])(f: (A,B)=>C): Either[EE, C] =
+      for {
+        a1 <- this
+        b1 <- b
+      } yield f(a1,b1)
+  }
+  case class Left[+E](value: E) extends Either[E, Nothing]
+  case class Right[+A](value: A) extends Either[Nothing, A]
+
+  object Either {
+    def Try[A](a: => A): Either[Exception, A] =
+      try Right(a)
+      catch {case e: Exception => Left(e)}
+
+    def mean(xs: Seq[Double]): Either[String,Double] =
+      if(xs.isEmpty) Left("empty")
+      else Right(xs.sum / xs.length)
+
+    def safeDiv(x:Int, y:Int): Either[Exception, Int] = Try(x / y)
+
+    def sequence[E, A](es: List[Either[E,A]]): Either[E, List[A]] =
+      es.foldRight(Right(Nil): Either[E, List[A]]){(e, acc) => e.map2(acc)(_ :: _)}
+
+    def traverse[E, A, B](as: List[A])(f: A=>Either[E,B]): Either[E, List[B]] =
+      as.foldRight(Right(Nil): Either[E, List[B]])((e, acc) => f(e).map2(acc)(_ :: _))
+  }
 }
