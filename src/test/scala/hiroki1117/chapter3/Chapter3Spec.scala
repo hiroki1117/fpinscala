@@ -79,4 +79,54 @@ class Chapter3Spec extends FlatSpec {
     doubleToStringList(List(5.toDouble)) should be(List("5.0"))
     List(5.toDouble).doubleList2StringList should be(List("5.0"))
   }
+
+  "foldL method" should "リスト演算を逆順にする" in {
+    list.foldLeft(Nil: List[Int])((acc,e)=> Cons(e,acc)) should be(list.reverse)
+    foldLeft(list,Nil: List[Int])((acc,e)=> Cons(e,acc)) should be(list.reverse)
+  }
+
+  "foldR method" should "リスト演算で同じ" in {
+    list.foldRight(Nil: List[Int])((e, acc) => Cons(e, acc)) should be(list)
+    foldRight(list, Nil: List[Int])((e, acc) => Cons(e, acc)) should be(list)
+  }
+
+  "filter method" should "3以上を削除" in {
+    list.filter(_>=3) should be(List(1,2))
+    filterByFlatMap(list)(_>=3) should be(List(1,2))
+  }
+
+  "removeOdd method" should "奇数を削除" in {
+    list.removeOdd should be(List(2,4))
+    removeOdd(list) should be(List(2,4))
+  }
+
+  "hasSequence method" should "部分を持っている" in {
+    hasSubsequence(list, List(2,3)) should be(true)
+    hasSubsequence(list, List(5)) should be(true)
+    hasSubsequence(list, List(1,2,3,4,5)) should be(true)
+    hasSubsequence(list, List(1,2,4)) should be(false)
+  }
+
+  import Tree._
+  val tree: Tree[Int] = Branch(Branch(Leaf(1), Leaf(2)),Branch(Leaf(3),Leaf(4)))
+
+  "size method" should "木のサイズを計算" in {
+    size(tree) should be(4)
+  }
+
+  "maximum method" should "木の値の最大値" in {
+    maximum(tree) should be(4)
+  }
+
+  "depth method" should "木の深さを測る" in {
+    depth(tree) should be(2)
+  }
+
+  "map method" should "木の構造を変えず処理を適用" in {
+    Tree.map(tree)(_+1) should be(Branch(Branch(Leaf(2), Leaf(3)),Branch(Leaf(4),Leaf(5))))
+  }
+
+  "fold method" should "全要素を足す" in {
+    fold(tree)(identity)((x,y) => x+y) should be(10)
+  }
 }

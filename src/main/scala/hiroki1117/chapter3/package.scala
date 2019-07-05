@@ -189,7 +189,7 @@ package object chapter3 {
       case (Cons(a,b), Cons(c,d)) => Cons((a,c), zipWith(b, d))
     }
 
-    def hasSubsequence2[A](sup: List[A], sub: List[A]): Boolean = {
+    def hasSubsequence[A](sup: List[A], sub: List[A]): Boolean = {
       def go[B](n: Int, list: List[B] ,acc: List[List[B]]): List[List[B]] = if(n > list.length) acc else
         append(Cons(take(list, n), acc), go(n+1, list, acc))
 
