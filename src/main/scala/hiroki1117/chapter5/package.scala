@@ -17,9 +17,9 @@ package object chapter5 {
       case Empty => z
     }
 
-    def map[B](f:A=>B): Stream[B] = this.foldRight(Stream.empty)(Stream.cons(f(_), _))
+    def map[B](f:A=>B): Stream[B] = this.foldRight(Stream.empty[B])((e,acc)=>Stream.cons(f(e), acc))
 
-    def filter(p: A=>Boolean): Stream[A] = this.foldRight(Stream.empty)((e,acc)=> if(p(e)) Stream.cons(e, acc) else acc)
+    def filter(p: A=>Boolean): Stream[A] = this.foldRight(Stream.empty[A])((e,acc)=> if(p(e)) Stream.cons(e, acc) else acc)
 
     def append[B>:A](other: =>Stream[B]): Stream[B] = this.foldRight(other)(Stream.cons(_, _))
 

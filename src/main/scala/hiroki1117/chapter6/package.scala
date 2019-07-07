@@ -46,9 +46,9 @@ package object chapter6 {
   def ints(count: Int)(rng: RNG): (List[Int], RNG) =
     if(count<=0) (Nil, rng)
     else {
-      var next: RNG
+      var next: RNG = rng
       val result = for (_ <- 1 to count) yield {
-        val (int, r) = rng.nextInt
+        val (int, r) = next.nextInt
         next = r
         int
       }
@@ -78,7 +78,7 @@ package object chapter6 {
       (f(a,b), next2)
     }
 
-  def both[A,B](ra: Rand[A], rb: Rand[B]): Rand[(A,B)] = map2(ra,rb)(_ + _)
+  def both[A,B](ra: Rand[A], rb: Rand[B]): Rand[(A,B)] = map2(ra,rb)((_, _))
 
   def randIntDouble: Rand[(Int,Double)] = both(int, double)
 
@@ -105,4 +105,6 @@ package object chapter6 {
   def map2ByFlat[A,B,C](fa:Rand[A], fb:Rand[B])(f:(A,B)=>C):Rand[C] = flatMap(fa)(a => map(fb)(b=>f(a,b)))
 
   def rollDie: Rand[Int] = map(nonNegativeLessThan(6))(_+1)
+
+  case class State[S, +A](run: S=>(A,S))
 }
