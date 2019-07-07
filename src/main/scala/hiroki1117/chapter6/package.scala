@@ -55,7 +55,7 @@ package object chapter6 {
       (result.toList, next)
     }
 
-  type Rand[+A] = RNG => (A,RNG)
+  type Rand[A] = RNG => (A,RNG)
 
   val int: Rand[Int] = _.nextInt
 
@@ -106,5 +106,27 @@ package object chapter6 {
 
   def rollDie: Rand[Int] = map(nonNegativeLessThan(6))(_+1)
 
-  case class State[S, +A](run: S=>(A,S))
+  case class State[S, +A](run: S=>(A,S)){
+    def map[B](f: A=>B): State[S,B] = flatMap(a=>State.unit(f(a)))
+
+    def map2[B,C](fb: State[S,B])(f:(A,B)=>C): State[S,C] = flatMap(a=> fb.map(b=>f(a,b)))
+
+    def flatMap[B](f: A=>State[S,B]): State[S,B] = s => {
+      val (a, next) = run(a)
+      f(a)(next)
+    }
+  }
+
+  object State {
+    def unit[S, A](a:A): State[S,A] = State(s=>(a,s))
+
+    def get[S]: State[S,S] = State(s=>(s,s))
+
+    def set[S](s:S): State[S, Unit] = State(_ => ((), s))
+
+    def sequence[S,A](list: List[State[S,A]]): State[S,List[A]] = traverse(list)(identity)
+
+    def traverse[S,A,B](list: List[A])(f:A=>State[S,B]):State[S, List[B]] =
+      list.foldRight(State.unit(Nil): State[S, List[B]])((e, acc)=>f(e).map2(acc)(_::_))
+  }
 }
