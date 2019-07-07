@@ -111,10 +111,10 @@ package object chapter6 {
 
     def map2[B,C](fb: State[S,B])(f:(A,B)=>C): State[S,C] = flatMap(a=> fb.map(b=>f(a,b)))
 
-    def flatMap[B](f: A=>State[S,B]): State[S,B] = s => {
-      val (a, next) = run(a)
-      f(a)(next)
-    }
+    def flatMap[B](f: A=>State[S,B]): State[S,B] = State(s => {
+      val (a, next) = run(s)
+      f(a).run(next)
+    })
   }
 
   object State {
