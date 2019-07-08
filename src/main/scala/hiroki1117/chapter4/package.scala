@@ -71,6 +71,11 @@ package object chapter4 {
 
     def traverse[A,B](a: List[A])(f: A=>Option[B]): Option[List[B]] =
       a.foldRight(Some(Nil): Option[List[B]]){(e, acc) => map2(f(e), acc)(_ :: _)}
+
+    def map3bymap2[A,B,C,D](a:Option[A],b:Option[B],c:Option[C])(f:(A,B,C)=>D): Option[D] =
+      map2(map2(a,b)((_,_)), c){ case ((a1,b1), c1) => f(a1,b1,c1)}
+
+    def map[A,B](a: Option[A])(f:A=>B):Option[B] = map2(a, pure(()))((a1, _) => f(a1))
   }
 
   sealed trait Either[+E, +A] {
@@ -99,6 +104,9 @@ package object chapter4 {
         a1 <- this
         b1 <- b
       } yield f(a1,b1)
+
+    def map3[EE>:E, B,C,D](b: Either[EE,B], c: Either[EE,C])(f: (A,B,C)=>D): Either[EE,D] =
+      map2(b)((_,_)).map2(c){ case ((a1,b1),c1) => f(a1,b1,c1)}
   }
   case class Left[+E](value: E) extends Either[E, Nothing]
   case class Right[+A](value: A) extends Either[Nothing, A]
