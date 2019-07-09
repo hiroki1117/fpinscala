@@ -18,4 +18,17 @@ class Chapter5Spec extends FlatSpec {
     stream.toList should be(List(1,2,3))
     Stream.empty[String].toList should be(Nil)
   }
+
+  "foldRight method" should "右から適用" in {
+    stream.foldRight(Nil: List[Int])(_ :: _).toList should be (List(1,2,3))
+  }
+
+  "filter method" should "奇数を削除" in {
+    stream.filter(_%2==1).toList should be(List(1,3))
+  }
+
+  "append method" should "末尾に追加" in {
+    (stream append stream).toList should be(List(1,2,3,1,2,3))
+  }
+
 }
