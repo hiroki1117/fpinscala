@@ -31,4 +31,30 @@ class Chapter5Spec extends FlatSpec {
     (stream append stream).toList should be(List(1,2,3,1,2,3))
   }
 
+  "take method" should "n個取る" in {
+    stream.take(2).toList should be(List(1,2))
+  }
+
+  "drop method" should "n個落とす" in {
+    stream.drop(1).toList should be(List(2,3))
+  }
+
+  "exists method" should "存在したらtrue" in {
+    stream.exists(_ == 2) should be (true)
+    stream.existsByFR(_ == 100) should be(false)
+  }
+
+  "forAll method" should "全てに" in {
+    stream.forAll(_ < 15) should be(true)
+  }
+
+  "takeWhile method" should "条件が満たされるうちは取得" in {
+    stream.takeWhile(_<3).toList should be(List(1,2))
+    stream.takeWhileByFR(_<3).toList should be(List(1,2))
+  }
+
+  "find method" should "条件を満たした要素の一番最初を取得" in {
+    stream.find(_ == 3) should be(Option(3))
+    stream.find(_ > 10) should be(None)
+  }
 }
