@@ -130,4 +130,24 @@ package object chapter4 {
     def traverse[E, A, B](as: List[A])(f: A=>Either[E,B]): Either[E, List[B]] =
       as.foldRight(Right(Nil): Either[E, List[B]])((e, acc) => f(e).map2(acc)(_ :: _))
   }
+
+  trait Partial[+A,+B] {
+    def map[C](f: B=>C):Partial[A,C] = this match {
+      case Errors(e) => Errors(e)
+      case Success(s) => Success(f(s))
+    }
+
+    def map2[AA>:A, C, D](other:Partial[AA, C])(f:(B,C)=>D): Partial[AA,D] = this match {
+      case Errors(es1) => other match {
+        case Errors(es2) => Errors(es1 ++ es2)
+        case Success(_) => Errors(es1)
+      }
+      case Success(s1) => other match {
+        case Errors(es) => Errors(es)
+        case Success(s2) => Success(f(s1,s2))
+      }
+    }
+  }
+  case class Errors[+A](get: Seq[A]) extends Partial[A,Nothing]
+  case class Success[+B](get: B) extends Partial[Nothing,B]
 }
