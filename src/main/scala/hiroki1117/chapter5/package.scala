@@ -75,5 +75,16 @@ package object chapter5 {
 
     def from(n: Int): Stream[Int] = cons(n, from(n+1))
 
+    def fibs: Stream[Int] = {
+      def go(ini1: Int, ini2: Int): Stream[Int] = Stream.cons(ini1, go(ini2, ini1+ini2))
+      go(0,1)
+    }
+
+    def unfold[A,S](z:S)(f: S=>Option[(S,A)]): Stream[A] = f(z) match {
+      case Some((next, a)) => Stream.cons(a, unfold(next)(f))
+      case None => Stream.empty
+    }
+
+
   }
 }
