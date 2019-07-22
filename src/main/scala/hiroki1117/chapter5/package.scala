@@ -111,7 +111,7 @@ package object chapter5 {
 
     def fibsByUnfold: Stream[Int] = unfold((0,1))(_ match {
       case (0, 1) => Some((1,1), 0)
-      case (x, y) => Some((y, x+y), y)
+      case (x, y) => Some((y, x+y), x)
     })
 
     def fromByUnfold(n: Int): Stream[Int] = unfold(n)(x => Some(x+1, x))
