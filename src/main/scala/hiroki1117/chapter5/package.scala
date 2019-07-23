@@ -55,6 +55,11 @@ package object chapter5 {
 
     def find(p: A=>Boolean): Option[A] = filter(p).headOption
 
+    def zip[B](s2: Stream[B]): Stream[(A,B)] = Stream.unfold((this, s2))(_ match {
+      case (Cons(ha,ta), Cons(hb,tb)) => Some(((ta(), tb()), (ha(), hb())))
+      case _ => None
+    })
+
     def zipAll[B](s2: Stream[B]): Stream[(Option[A], Option[B])] = Stream.unfold((this, s2))(_ match {
       case (Empty, Empty) => None
       case (Empty, Cons(b, t)) => Some(((Stream.empty[A], t()), (None, Some(b()))))
@@ -139,10 +144,10 @@ package object chapter5 {
       case _ => None
     })
 
-    def zipWith[A,B](as: Stream[A], bs: Stream[B]): Stream[(A,B)] = unfold((as,bs))(_ match {
+    def zipWith[A,B,C](as: Stream[A], bs: Stream[B])(f:(A,B)=>C): Stream[C] = unfold((as,bs))(_ match {
       case (Empty, _) => None
       case (_, Empty) => None
-      case (Cons(ha, ta), Cons(hb, tb)) => Some(((ta(), tb()), (ha(), hb())))
+      case (Cons(ha, ta), Cons(hb, tb)) => Some(((ta(), tb()), f(ha(), hb())))
     })
   }
 }
