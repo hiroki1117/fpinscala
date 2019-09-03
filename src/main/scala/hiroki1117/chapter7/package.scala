@@ -8,6 +8,11 @@ package object chapter7 {
 
   object Par {
     def unit[A](a: A): Par[A] = (es: ExecutorService) => UnitFuture(a)
+    def lazyUnit[A](a: A): Par[A] = fork(unit(a))
+
+    def map[A,B](a: Par[A])(f: A=>B): Par[B] = map2timeoutable(a, unit(()))((a,_) => f(a))
+
+
 
     private case class UnitFuture[A](get: A) extends Future[A] {
       override def isDone: Boolean = true
@@ -25,6 +30,9 @@ package object chapter7 {
         UnitFuture(f(af.get, bf.get))
       }
 
+    def map3[A,B,C,D](a: Par[A],b: Par[B],c: Par[C])(f: (A,B,C) => D): Par[D] = map2(map2(a,b)(f.curried(_, _)), c)(_(_))
+    //map2(map2(a,b)((_,_)),c){case ((a1,b1),c1) => f(a1,b1,c1)}
+
     //外側のCallableがスレッドで実行される時、もう一つのスレッドでaが実行される
     //forkは最低でも2つのスレッドを使用する事になる
     //デッドロックの原因になる
@@ -32,6 +40,21 @@ package object chapter7 {
       es => es.submit(new Callable[A] {
         def call = a(es).get
       })
+
+    def asyncF[A,B](f: A=>B): A=>Par[B] = a => lazyUnit(f(a))
+
+    def parMap[A,B](ps:List[A])(f:A=>B):Par[List[B]] = fork{
+      val fbs: List[Par[B]] = ps.map(asyncF(f))
+      sequence(fbs)
+    }
+
+    def parFilter[A](l: List[A])(f: A=>Boolean): Par[List[A]] = {
+      val pars: List[Par[List[A]]] = l map (asyncF(a => if (f(a)) List(a) else List()))
+      map(sequence(pars))(_.flatten)
+    }
+
+    def sequence[A](ps: List[Par[A]]): Par[List[A]] =
+      ps.foldRight(Par.unit(Nil): Par[List[A]])((e, acc)=> map2(e, acc)(_::_))
 
     def map2timeoutable[A,B,C](a: Par[A],b: Par[B])(f: (A,B)=>C): Par[C] =
       es => {
@@ -69,5 +92,20 @@ package object chapter7 {
           ret
       }
     }
+
+    def sortPar(parList: Par[List[Int]]): Par[List[Int]] = map(parList)(_.sorted)
+
+    def parMax(ints: IndexedSeq[Int]): Par[Int] = {
+      if(ints.size<=1) {
+        Par.unit(ints.headOption.getOrElse(0))
+      } else {
+        val (l,r) = ints.splitAt(ints.length/2)
+        Par.map2(fork(parMax(l)), fork(parMax(r)))((ll, rr) => if(ll>=rr) rr else ll)
+      }
+    }
+
+    def countEachWord(sentence: List[String]): Par[List[Int]] = countSentence(sentence)(_ split "" length)
+
+    def countSentence(sentence: List[String])(countF: String=>Int): Par[List[Int]] = sequence(sentence.map(asyncF(countF)))
   }
 }
