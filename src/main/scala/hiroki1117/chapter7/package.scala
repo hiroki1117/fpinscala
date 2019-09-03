@@ -30,7 +30,7 @@ package object chapter7 {
         UnitFuture(f(af.get, bf.get))
       }
 
-    def map3[A,B,C,D](a: Par[A],b: Par[B],c: Par[C])(f: (A,B,C) => D): Par[D] = map2(map2(a,b)(f.curried(_, _)), c)(_(_))
+    def map3[A,B,C,D](a: Par[A],b: Par[B],c: Par[C])(f: (A,B,C) => D): Par[D] = map2(map2(a,b)(f.curried(_)(_)), c)(_(_))
     //map2(map2(a,b)((_,_)),c){case ((a1,b1),c1) => f(a1,b1,c1)}
 
     //外側のCallableがスレッドで実行される時、もう一つのスレッドでaが実行される
