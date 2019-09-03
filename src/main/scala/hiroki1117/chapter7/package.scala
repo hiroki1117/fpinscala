@@ -32,5 +32,42 @@ package object chapter7 {
       es => es.submit(new Callable[A] {
         def call = a(es).get
       })
+
+    def map2timeoutable[A,B,C](a: Par[A],b: Par[B])(f: (A,B)=>C): Par[C] =
+      es => {
+        val (af, bf) = (a(es), b(es))
+
+      }
+
+    private case class Map2Future[A,B,C](a: Future[A], b: Future[B],
+                                         f: (A,B) => C) extends Future[C] {
+      //計算結果を保持する
+      @volatile var cache: Option[C] = None
+      //計算結果が存在するかどうか
+      def isDone = cache.isDefined
+      def isCancelled = a.isCancelled || b.isCancelled
+      def cancel(mayInterruptIfRunning: Boolean): Boolean =
+        a.cancel(mayInterruptIfRunning) || b.cancel(mayInterruptIfRunning)
+      def get = compute(Long.MaxValue)
+      // NANOSECONDSに変換
+      def get(timeout: Long, units: TimeUnit): C =
+        compute(TimeUnit.NANOSECONDS.convert(timeout, units))
+
+
+
+      //a,bを時間を測りながら実行する
+      private def compute(timeoutInNanos: Long): C = cache match {
+        case Some(c) => c
+        case None =>
+          val start = System.nanoTime()
+          val ar = a.get(timeoutInNanos, TimeUnit.NANOSECONDS)
+          val stop = System.nanoTime()
+          val aTime = stop-start
+          val br = b.get(timeoutInNanos-aTime, TimeUnit.NANOSECONDS)
+          val ret = f(ar, br)
+          cache = Some(ret)
+          ret
+      }
+    }
   }
 }
