@@ -36,7 +36,7 @@ package object chapter7 {
     def map2timeoutable[A,B,C](a: Par[A],b: Par[B])(f: (A,B)=>C): Par[C] =
       es => {
         val (af, bf) = (a(es), b(es))
-
+        Map2Future(af, bf, f)
       }
 
     private case class Map2Future[A,B,C](a: Future[A], b: Future[B],
