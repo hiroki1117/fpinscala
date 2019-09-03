@@ -25,6 +25,9 @@ package object chapter7 {
         UnitFuture(f(af.get, bf.get))
       }
 
+    //外側のCallableがスレッドで実行される時、もう一つのスレッドでaが実行される
+    //forkは最低でも2つのスレッドを使用する事になる
+    //デッドロックの原因になる
     def fork[A](a: => Par[A]): Par[A] =
       es => es.submit(new Callable[A] {
         def call = a(es).get
