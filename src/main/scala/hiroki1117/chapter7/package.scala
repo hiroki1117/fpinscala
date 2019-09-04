@@ -12,8 +12,6 @@ package object chapter7 {
 
     def map[A,B](a: Par[A])(f: A=>B): Par[B] = map2timeoutable(a, unit(()))((a,_) => f(a))
 
-
-
     private case class UnitFuture[A](get: A) extends Future[A] {
       override def isDone: Boolean = true
       override def get(timeout: Long, unit: TimeUnit): A = get
@@ -40,6 +38,8 @@ package object chapter7 {
       es => es.submit(new Callable[A] {
         def call = a(es).get
       })
+
+    def delay[A](fa: => Par[A]): Par[A] = es => fa(es)
 
     def asyncF[A,B](f: A=>B): A=>Par[B] = a => lazyUnit(f(a))
 
@@ -92,6 +92,8 @@ package object chapter7 {
           ret
       }
     }
+
+    def equal[A](e: ExecutorService)(p: Par[A], p2: Par[A]): Boolean = p(e).get == p2(e).get()
 
     def sortPar(parList: Par[List[Int]]): Par[List[Int]] = map(parList)(_.sorted)
 
